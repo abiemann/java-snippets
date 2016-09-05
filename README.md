@@ -37,6 +37,9 @@ Some of my favorite articles on the subject include (if you are new to GC tuning
 + [Garbage Collectors Available In JDK 1.7.0_04](http://www.fasterj.com/articles/oraclecollectors1.shtml)
 + [1.4.1 Garbage collection algorithms](http://www.javaperformancetuning.com/news/qotm026.shtml)
 + [Understanding CMS GC Logs](https://blogs.oracle.com/poonam/entry/understanding_cms_gc_logs)
++ [Garbage Collection Optimization for High-Throughput and Low-Latency Java Applications](https://engineering.linkedin.com/garbage-collection/garbage-collection-optimization-high-throughput-and-low-latency-java-applications)
++ [Calculator](http://www.curiousmentality.co.uk/2011/11/tuning-jvm-memory-settings/)
++ [Useful JVM flags](https://blog.codecentric.de/en/2012/08/useful-jvm-flags-part-5-young-generation-garbage-collection/)
 
 The young and old generation use different types of algorithms for garbage collection. The young generation uses a copying collection algorithm that moves all the live object from one area to another, leaving the dead objects behind. The old generation uses a mark-and-sweep collection algorithm. Copy collection time is roughly proportional to the number of live objects, mark-and-sweep collection is roughly proportional to the size of the heap. This is why the young heap is small and collected frequently and the old heap is big and collected less frequently.
 
@@ -49,7 +52,16 @@ On a multicore machine the choice is between the parallel algorithm and the conc
 + Parallel: use when optimizing for throughput, therefore your system will be able to process more requests, but stop-the-world pauses will be more noticeable.
 + Concurrent: use when optimizing for latency, therefore your system will produce more consistent, but slower results.
 
-On all the systems I've worked on, consistency is more important so I normally use the concurrent algorithm. The concurrent algorithm only works on the old generation, but the parallel algorithm will be defaulted for the new generation. To enable the concurrent algorithm use the flag:
+On all the systems I've worked on, consistency is more important so I normally use the concurrent algorithm. The concurrent algorithm only works on the old generation, but the parallel algorithm will be defaulted for the new generation.
+
+ParNew collects the new generation. It is a copying collector which uses multiple GC threads. Concurrent Mark Sweep collects the tenured generation. Performs the following phases:
+  + Initial Mark (stop the world)
+  + Concurrent Marking
+  + Remark (stop the world)
+  + Concurrent Sweep
+  + Resetting
+
+To enable the concurrent algorithm use the flag:
 
 ```
 -XX:+UseConcMarkSweepGC
@@ -87,4 +99,21 @@ To check if a flag is set by default:
 
 ```
 java -XX:+PrintFlagsFinal | grep FLAG
+```
+
+Random example:
+```
+java -XX:+PrintFlagsFinal -version
+
+-Xms8g
+-Xmx8g
+-XX:NewSize=6g
+-XX:SurvivorRatio=20
+-XX:+UseConcMarkSweepGC
+-verbose:gc
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCTimeStamps
+-XX:+PrintTenuringDistribution
+-Xloggc:/var/log/uni/gc.log
 ```

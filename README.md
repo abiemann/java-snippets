@@ -1,8 +1,8 @@
 # Java Snippets
 Snippets of useful/interesting Java code
 
-## Technology
-+ Java: 1.7.0_10-b18
+## Cool Libraries
++ [Base64/Hex](http://commons.apache.org/proper/commons-codec/index.html)
 
 ## Ideas
 + Sorting (plus searching / binary search)
